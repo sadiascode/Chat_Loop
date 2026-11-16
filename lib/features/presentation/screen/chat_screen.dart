@@ -23,6 +23,7 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _isConnecting = false;
   bool _hasConnected = false;
   String? _connectionError;
+  String? _myUsername;
 
   final List<Map<String, dynamic>> _messages = [];
 
@@ -43,6 +44,8 @@ class _ChatScreenState extends State<ChatScreen> {
       });
       return;
     }
+
+    _myUsername = username;
 
     final uri = Uri.parse('wss://gin-chat-demo.onrender.com/ws')
         .replace(queryParameters: {'user': username});
@@ -118,10 +121,18 @@ class _ChatScreenState extends State<ChatScreen> {
 
       if (!mounted) return;
 
+      final sender = decodedData['from'] ?? decodedData['senderId'] ?? decodedData['sender'] ?? 'unknown';
+      final messageText = decodedData['text'] ?? decodedData['message'] ?? '';
+
+      // Check if this message is from me (my own message echoed back)
+      final isFromMe = sender == _myUsername;
+
+      debugPrint('Received message - Text: $messageText, Sender: $sender, IsMe: $isFromMe, MyUsername: $_myUsername');
+
       setState(() {
         _messages.add({
-          'message': decodedData['message'] ?? '',
-          'senderId': decodedData['senderId'] ?? 'unknown',
+          'message': messageText,
+          'senderId': isFromMe ? 'me' : sender,
           'time': TimeOfDay.now().format(context),
         });
       });
@@ -284,7 +295,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     itemBuilder: (context, index) {
                       final message = _messages[index];
 
-                      final bool isMe = message['senderId'] == 'user_123';
+                      final bool isMe = message['senderId'] == 'me';
 
                       return Align(
                         alignment: isMe

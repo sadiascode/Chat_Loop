@@ -219,12 +219,13 @@ class _ChatScreenState extends State<ChatScreen> {
                 children: [
                   Stack(
                     children: [
-                      const CircleAvatar(
-                        radius: 23,
-                        backgroundImage: NetworkImage(
-                          'https://i.pravatar.cc/150?img=47',
-                        ),
-                      ),
+                      // const CircleAvatar(
+                      //   radius: 23,
+                      //   backgroundImage: NetworkImage(
+                      //     'https://i.pravatar.cc/150?img=47',
+                      //   ),
+                      // ),
+                      const CircleAvatar(radius: 23, child: Icon(Icons.person)),
                       Positioned(
                         bottom: 0,
                         right: 0,
@@ -246,8 +247,8 @@ class _ChatScreenState extends State<ChatScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Sadia Rahman',
+                      Text(
+                        _recipientController.text.trim(),
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -274,14 +275,29 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
 
               actions: [
+                // IconButton(
+                //   onPressed: () {},
+                //   icon: const Icon(Icons.call_outlined, color: Colors.black87),
+                // ),
                 IconButton(
-                  onPressed: () {},
-                  icon: const Icon(Icons.call_outlined, color: Colors.black87),
+                  onPressed: () {
+                    disconnectWebSocket();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ChatScreen(),
+                      ),
+                    );
+                  },
+                  icon: const Icon(
+                    Icons.logout_outlined,
+                    color: Colors.black87,
+                  ),
                 ),
-                IconButton(
-                  onPressed: () {},
-                  icon: const Icon(Icons.more_vert, color: Colors.black87),
-                ),
+                // IconButton(
+                //   onPressed: () {},
+                //   icon: const Icon(Icons.more_vert, color: Colors.black87),
+                // ),
               ],
             )
           : null,

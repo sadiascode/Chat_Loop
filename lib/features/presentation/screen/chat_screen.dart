@@ -1,3 +1,4 @@
+
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -11,46 +12,73 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  final TextEditingController _messageController = TextEditingController();
+  final TextEditingController _messageController =
+  TextEditingController();
+  final TextEditingController _usernameController =
+  TextEditingController();
 
   final ScrollController _scrollController = ScrollController();
 
   WebSocketChannel? _channel;
 
   bool _isConnected = false;
-  bool _isConnecting = true;
+  bool _isConnecting = false;
+  bool _hasConnected = false;
+  String? _connectionError;
 
   final List<Map<String, dynamic>> _messages = [];
 
   final Color primaryColor = const Color(0xFF6C63FF);
 
-  // Replace with your actual WebSocket server URL
-  final String socketUrl = 'https://gin-chat-demo.onrender.com';
-
   @override
   void initState() {
     super.initState();
-    connectWebSocket();
   }
 
   // WebSocket Connection
   Future<void> connectWebSocket() async {
-    try {
-      final channel = WebSocketChannel.connect(Uri.parse(socketUrl));
+    final username = _usernameController.text.trim();
 
+    if (username.isEmpty) {
+      setState(() {
+        _connectionError = 'Please enter your username.';
+      });
+      return;
+    }
+
+    final uri = Uri.parse(
+      'wss://gin-chat-demo.onrender.com/ws',
+    ).replace(
+      queryParameters: {'user': username},
+    );
+
+    setState(() {
+      _isConnecting = true;
+      _connectionError = null;
+    });
+
+    WebSocketChannel? channel;
+
+    try {
+      channel = WebSocketChannel.connect(uri);
       _channel = channel;
 
       await channel.ready;
 
-      if (!mounted) return;
+      if (!mounted) {
+        await channel.sink.close();
+        return;
+      }
 
       setState(() {
         _isConnected = true;
         _isConnecting = false;
+        _hasConnected = true;
+        _connectionError = null;
       });
 
       channel.stream.listen(
-        (data) {
+            (data) {
           handleIncomingMessage(data);
         },
         onError: (error) {
@@ -64,7 +92,17 @@ class _ChatScreenState extends State<ChatScreen> {
       );
     } catch (e) {
       debugPrint('Connection Error: $e');
-      updateConnectionStatus(false);
+
+      await channel?.sink.close();
+
+      if (!mounted) return;
+
+      setState(() {
+        _isConnected = false;
+        _isConnecting = false;
+        _connectionError =
+        'Connection failed. Check your username and try again.';
+      });
     }
   }
 
@@ -150,6 +188,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void dispose() {
     _messageController.dispose();
+    _usernameController.dispose();
     _scrollController.dispose();
     _channel?.sink.close();
     super.dispose();
@@ -160,18 +199,10 @@ class _ChatScreenState extends State<ChatScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F8FC),
 
-      appBar: AppBar(
+      appBar: _hasConnected
+          ? AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-
-        // leading: IconButton(
-        //   icon: const Icon(
-        //     Icons.arrow_back_ios_new,
-        //     color: Colors.black87,
-        //     size: 20,
-        //   ),
-        //   onPressed: () => Navigator.pop(context),
-        // ),
 
         title: Row(
           children: [
@@ -190,9 +221,14 @@ class _ChatScreenState extends State<ChatScreen> {
                     height: 12,
                     width: 12,
                     decoration: BoxDecoration(
-                      color: _isConnected ? Colors.green : Colors.grey,
+                      color: _isConnected
+                          ? Colors.green
+                          : Colors.grey,
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 2),
+                      border: Border.all(
+                        color: Colors.white,
+                        width: 2,
+                      ),
                     ),
                   ),
                 ),
@@ -223,7 +259,9 @@ class _ChatScreenState extends State<ChatScreen> {
                       : 'Disconnected',
                   style: TextStyle(
                     fontSize: 12,
-                    color: _isConnected ? Colors.green : Colors.grey,
+                    color: _isConnected
+                        ? Colors.green
+                        : Colors.grey,
                   ),
                 ),
               ],
@@ -234,42 +272,39 @@ class _ChatScreenState extends State<ChatScreen> {
         actions: [
           IconButton(
             onPressed: () {},
-            icon: const Icon(Icons.call_outlined, color: Colors.black87),
+            icon: const Icon(
+              Icons.call_outlined,
+              color: Colors.black87,
+            ),
           ),
           IconButton(
             onPressed: () {},
-            icon: const Icon(Icons.more_vert, color: Colors.black87),
+            icon: const Icon(
+              Icons.more_vert,
+              color: Colors.black87,
+            ),
           ),
         ],
-      ),
+      )
+          : null,
 
-      body: Column(
+      body: _hasConnected
+          ? Column(
         children: [
-          // Connection Status
-          if (!_isConnected)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(8),
-              color: Colors.orange.shade50,
-              child: Text(
-                _isConnecting
-                    ? 'Connecting to server...'
-                    : 'Not connected to server',
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.deepOrange, fontSize: 12),
-              ),
-            ),
-
           // Messages
           Expanded(
             child: ListView.builder(
               controller: _scrollController,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 20,
+              ),
               itemCount: _messages.length,
               itemBuilder: (context, index) {
                 final message = _messages[index];
 
-                final bool isMe = message['senderId'] == 'user_123';
+                final bool isMe =
+                    message['senderId'] == 'user_123';
 
                 return Align(
                   alignment: isMe
@@ -278,7 +313,8 @@ class _ChatScreenState extends State<ChatScreen> {
 
                   child: Container(
                     constraints: BoxConstraints(
-                      maxWidth: MediaQuery.of(context).size.width * 0.75,
+                      maxWidth:
+                      MediaQuery.of(context).size.width * 0.75,
                     ),
 
                     margin: const EdgeInsets.only(bottom: 16),
@@ -289,13 +325,19 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
 
                     decoration: BoxDecoration(
-                      color: isMe ? primaryColor : Colors.white,
+                      color: isMe
+                          ? primaryColor
+                          : Colors.white,
 
                       borderRadius: BorderRadius.only(
                         topLeft: const Radius.circular(18),
                         topRight: const Radius.circular(18),
-                        bottomLeft: Radius.circular(isMe ? 18 : 4),
-                        bottomRight: Radius.circular(isMe ? 4 : 18),
+                        bottomLeft: Radius.circular(
+                          isMe ? 18 : 4,
+                        ),
+                        bottomRight: Radius.circular(
+                          isMe ? 4 : 18,
+                        ),
                       ),
 
                       boxShadow: [
@@ -315,7 +357,9 @@ class _ChatScreenState extends State<ChatScreen> {
                           style: TextStyle(
                             fontSize: 14,
                             height: 1.5,
-                            color: isMe ? Colors.white : Colors.black87,
+                            color: isMe
+                                ? Colors.white
+                                : Colors.black87,
                           ),
                         ),
 
@@ -325,7 +369,9 @@ class _ChatScreenState extends State<ChatScreen> {
                           message['time'].toString(),
                           style: TextStyle(
                             fontSize: 10,
-                            color: isMe ? Colors.white70 : Colors.grey,
+                            color: isMe
+                                ? Colors.white70
+                                : Colors.grey,
                           ),
                         ),
                       ],
@@ -338,7 +384,9 @@ class _ChatScreenState extends State<ChatScreen> {
 
           // Message Input
           Container(
-            padding: const EdgeInsets.fromLTRB(14, 12, 14, 20),
+            padding: const EdgeInsets.fromLTRB(
+              14, 12, 14, 20,
+            ),
 
             decoration: BoxDecoration(
               color: Colors.white,
@@ -364,7 +412,9 @@ class _ChatScreenState extends State<ChatScreen> {
 
                 Expanded(
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                    ),
 
                     decoration: BoxDecoration(
                       color: const Color(0xFFF4F4F8),
@@ -396,7 +446,9 @@ class _ChatScreenState extends State<ChatScreen> {
                     width: 48,
 
                     decoration: BoxDecoration(
-                      color: _isConnected ? primaryColor : Colors.grey,
+                      color: _isConnected
+                          ? primaryColor
+                          : Colors.grey,
                       shape: BoxShape.circle,
                     ),
 
@@ -411,6 +463,146 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ),
         ],
+      )
+          : _buildConnectionScreen(),
+    );
+  }
+
+  // Initial Username Connection Screen
+  Widget _buildConnectionScreen() {
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 420),
+
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+
+            children: [
+              Icon(
+                Icons.wifi_tethering_rounded,
+                size: 64,
+                color: primaryColor,
+              ),
+
+              const SizedBox(height: 20),
+
+              const Text(
+                'Connect to Chat Server',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              const Text(
+                'Enter your username to connect and start chatting.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 14,
+                ),
+              ),
+
+              const SizedBox(height: 28),
+
+              TextField(
+                controller: _usernameController,
+                keyboardType: TextInputType.text,
+                textInputAction: TextInputAction.done,
+
+                onSubmitted: (_) {
+                  if (!_isConnecting) {
+                    connectWebSocket();
+                  }
+                },
+
+                decoration: InputDecoration(
+                  hintText: 'Enter username',
+                  prefixIcon: const Icon(Icons.person_outline),
+                  filled: true,
+                  fillColor: Colors.white,
+
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide.none,
+                  ),
+
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(
+                      color: Colors.grey.shade200,
+                    ),
+                  ),
+
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(
+                      color: primaryColor,
+                    ),
+                  ),
+                ),
+              ),
+
+              if (_connectionError != null) ...[
+                const SizedBox(height: 12),
+
+                Text(
+                  _connectionError!,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Colors.red,
+                    fontSize: 13,
+                  ),
+                ),
+              ],
+
+              const SizedBox(height: 18),
+
+              SizedBox(
+                height: 50,
+
+                child: ElevatedButton(
+                  onPressed: _isConnecting
+                      ? null
+                      : connectWebSocket,
+
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryColor,
+                    foregroundColor: Colors.white,
+
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+
+                  child: _isConnecting
+                      ? const SizedBox(
+                    height: 22,
+                    width: 22,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      color: Colors.white,
+                    ),
+                  )
+                      : const Text(
+                    'Connect',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

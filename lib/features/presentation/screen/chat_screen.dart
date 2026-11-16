@@ -135,17 +135,15 @@ class _ChatScreenState extends State<ChatScreen> {
   // Send Message
   void sendMessage() {
     final text = _messageController.text.trim();
+    final to = _recipientController.text.trim();
 
-    if (text.isEmpty || !_isConnected || _channel == null) {
+    if (text.isEmpty || to.isEmpty || !_isConnected || _channel == null) {
       return;
     }
 
     final messageData = {
-      'message': text,
-      'senderId': 'user_123',
-      'receiverId': 'user_456',
-      'type': 'text',
-      'timestamp': DateTime.now().toIso8601String(),
+      'to': to,
+      'text': text,
     };
 
     try {
@@ -184,6 +182,7 @@ class _ChatScreenState extends State<ChatScreen> {
   void dispose() {
     _messageController.dispose();
     _usernameController.dispose();
+    _recipientController.dispose();
     _scrollController.dispose();
     _channel?.sink.close();
     super.dispose();
@@ -501,7 +500,7 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
               SizedBox(height: 10),
               TextField(
-                controller: _usernameController,
+                controller: _recipientController,
                 keyboardType: TextInputType.text,
                 textInputAction: TextInputAction.done,
 

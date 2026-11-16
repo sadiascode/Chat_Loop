@@ -1,4 +1,3 @@
-
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -12,10 +11,9 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  final TextEditingController _messageController =
-  TextEditingController();
-  final TextEditingController _usernameController =
-  TextEditingController();
+  final TextEditingController _messageController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _recipientController = TextEditingController();
 
   final ScrollController _scrollController = ScrollController();
 
@@ -46,11 +44,8 @@ class _ChatScreenState extends State<ChatScreen> {
       return;
     }
 
-    final uri = Uri.parse(
-      'wss://gin-chat-demo.onrender.com/ws',
-    ).replace(
-      queryParameters: {'user': username},
-    );
+    final uri = Uri.parse('wss://gin-chat-demo.onrender.com/ws')
+        .replace(queryParameters: {'user': username});
 
     setState(() {
       _isConnecting = true;
@@ -78,7 +73,7 @@ class _ChatScreenState extends State<ChatScreen> {
       });
 
       channel.stream.listen(
-            (data) {
+        (data) {
           handleIncomingMessage(data);
         },
         onError: (error) {
@@ -101,7 +96,7 @@ class _ChatScreenState extends State<ChatScreen> {
         _isConnected = false;
         _isConnecting = false;
         _connectionError =
-        'Connection failed. Check your username and try again.';
+            'Connection failed. Check your username and try again.';
       });
     }
   }
@@ -201,269 +196,238 @@ class _ChatScreenState extends State<ChatScreen> {
 
       appBar: _hasConnected
           ? AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
+              backgroundColor: Colors.white,
+              elevation: 0,
 
-        title: Row(
-          children: [
-            Stack(
-              children: [
-                const CircleAvatar(
-                  radius: 23,
-                  backgroundImage: NetworkImage(
-                    'https://i.pravatar.cc/150?img=47',
-                  ),
-                ),
-                Positioned(
-                  bottom: 0,
-                  right: 0,
-                  child: Container(
-                    height: 12,
-                    width: 12,
-                    decoration: BoxDecoration(
-                      color: _isConnected
-                          ? Colors.green
-                          : Colors.grey,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Colors.white,
-                        width: 2,
+              title: Row(
+                children: [
+                  Stack(
+                    children: [
+                      const CircleAvatar(
+                        radius: 23,
+                        backgroundImage: NetworkImage(
+                          'https://i.pravatar.cc/150?img=47',
+                        ),
                       ),
-                    ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: Container(
+                          height: 12,
+                          width: 12,
+                          decoration: BoxDecoration(
+                            color: _isConnected ? Colors.green : Colors.grey,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 2),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
+
+                  const SizedBox(width: 12),
+
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Sadia Rahman',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
+                        ),
+                      ),
+
+                      const SizedBox(height: 3),
+
+                      Text(
+                        _isConnecting
+                            ? 'Connecting...'
+                            : _isConnected
+                            ? 'Online'
+                            : 'Disconnected',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: _isConnected ? Colors.green : Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+
+              actions: [
+                IconButton(
+                  onPressed: () {},
+                  icon: const Icon(Icons.call_outlined, color: Colors.black87),
+                ),
+                IconButton(
+                  onPressed: () {},
+                  icon: const Icon(Icons.more_vert, color: Colors.black87),
                 ),
               ],
-            ),
-
-            const SizedBox(width: 12),
-
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Sadia Rahman',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-
-                const SizedBox(height: 3),
-
-                Text(
-                  _isConnecting
-                      ? 'Connecting...'
-                      : _isConnected
-                      ? 'Online'
-                      : 'Disconnected',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: _isConnected
-                        ? Colors.green
-                        : Colors.grey,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-
-        actions: [
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(
-              Icons.call_outlined,
-              color: Colors.black87,
-            ),
-          ),
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(
-              Icons.more_vert,
-              color: Colors.black87,
-            ),
-          ),
-        ],
-      )
+            )
           : null,
 
       body: _hasConnected
           ? Column(
-        children: [
-          // Messages
-          Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 20,
-              ),
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                final message = _messages[index];
-
-                final bool isMe =
-                    message['senderId'] == 'user_123';
-
-                return Align(
-                  alignment: isMe
-                      ? Alignment.centerRight
-                      : Alignment.centerLeft,
-
-                  child: Container(
-                    constraints: BoxConstraints(
-                      maxWidth:
-                      MediaQuery.of(context).size.width * 0.75,
-                    ),
-
-                    margin: const EdgeInsets.only(bottom: 16),
-
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-
-                    decoration: BoxDecoration(
-                      color: isMe
-                          ? primaryColor
-                          : Colors.white,
-
-                      borderRadius: BorderRadius.only(
-                        topLeft: const Radius.circular(18),
-                        topRight: const Radius.circular(18),
-                        bottomLeft: Radius.circular(
-                          isMe ? 18 : 4,
-                        ),
-                        bottomRight: Radius.circular(
-                          isMe ? 4 : 18,
-                        ),
-                      ),
-
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.03),
-                          blurRadius: 8,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          message['message'].toString(),
-                          style: TextStyle(
-                            fontSize: 14,
-                            height: 1.5,
-                            color: isMe
-                                ? Colors.white
-                                : Colors.black87,
-                          ),
-                        ),
-
-                        const SizedBox(height: 5),
-
-                        Text(
-                          message['time'].toString(),
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: isMe
-                                ? Colors.white70
-                                : Colors.grey,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-
-          // Message Input
-          Container(
-            padding: const EdgeInsets.fromLTRB(
-              14, 12, 14, 20,
-            ),
-
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
-                  blurRadius: 10,
-                  offset: const Offset(0, -3),
-                ),
-              ],
-            ),
-
-            child: Row(
               children: [
-                IconButton(
-                  onPressed: () {},
-                  icon: Icon(
-                    Icons.add_circle_outline,
-                    color: primaryColor,
-                    size: 25,
-                  ),
-                ),
-
+                // Messages
                 Expanded(
-                  child: Container(
+                  child: ListView.builder(
+                    controller: _scrollController,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
+                      vertical: 20,
                     ),
+                    itemCount: _messages.length,
+                    itemBuilder: (context, index) {
+                      final message = _messages[index];
 
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF4F4F8),
-                      borderRadius: BorderRadius.circular(25),
-                    ),
+                      final bool isMe = message['senderId'] == 'user_123';
 
-                    child: TextField(
-                      controller: _messageController,
-                      minLines: 1,
-                      maxLines: 4,
+                      return Align(
+                        alignment: isMe
+                            ? Alignment.centerRight
+                            : Alignment.centerLeft,
 
-                      decoration: const InputDecoration(
-                        hintText: 'Type a message...',
-                        border: InputBorder.none,
-                      ),
+                        child: Container(
+                          constraints: BoxConstraints(
+                            maxWidth: MediaQuery.of(context).size.width * 0.75,
+                          ),
 
-                      onSubmitted: (_) => sendMessage(),
-                    ),
+                          margin: const EdgeInsets.only(bottom: 16),
+
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+
+                          decoration: BoxDecoration(
+                            color: isMe ? primaryColor : Colors.white,
+
+                            borderRadius: BorderRadius.only(
+                              topLeft: const Radius.circular(18),
+                              topRight: const Radius.circular(18),
+                              bottomLeft: Radius.circular(isMe ? 18 : 4),
+                              bottomRight: Radius.circular(isMe ? 4 : 18),
+                            ),
+
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.03),
+                                blurRadius: 8,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                message['message'].toString(),
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  height: 1.5,
+                                  color: isMe ? Colors.white : Colors.black87,
+                                ),
+                              ),
+
+                              const SizedBox(height: 5),
+
+                              Text(
+                                message['time'].toString(),
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: isMe ? Colors.white70 : Colors.grey,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
 
-                const SizedBox(width: 10),
+                // Message Input
+                Container(
+                  padding: const EdgeInsets.fromLTRB(14, 12, 14, 20),
 
-                GestureDetector(
-                  onTap: sendMessage,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.04),
+                        blurRadius: 10,
+                        offset: const Offset(0, -3),
+                      ),
+                    ],
+                  ),
 
-                  child: Container(
-                    height: 48,
-                    width: 48,
+                  child: Row(
+                    children: [
+                      IconButton(
+                        onPressed: () {},
+                        icon: Icon(
+                          Icons.add_circle_outline,
+                          color: primaryColor,
+                          size: 25,
+                        ),
+                      ),
 
-                    decoration: BoxDecoration(
-                      color: _isConnected
-                          ? primaryColor
-                          : Colors.grey,
-                      shape: BoxShape.circle,
-                    ),
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
 
-                    child: const Icon(
-                      Icons.send_rounded,
-                      color: Colors.white,
-                      size: 21,
-                    ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF4F4F8),
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+
+                          child: TextField(
+                            controller: _messageController,
+                            minLines: 1,
+                            maxLines: 4,
+
+                            decoration: const InputDecoration(
+                              hintText: 'Type a message...',
+                              border: InputBorder.none,
+                            ),
+
+                            onSubmitted: (_) => sendMessage(),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(width: 10),
+
+                      GestureDetector(
+                        onTap: sendMessage,
+
+                        child: Container(
+                          height: 48,
+                          width: 48,
+
+                          decoration: BoxDecoration(
+                            color: _isConnected ? primaryColor : Colors.grey,
+                            shape: BoxShape.circle,
+                          ),
+
+                          child: const Icon(
+                            Icons.send_rounded,
+                            color: Colors.white,
+                            size: 21,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
-            ),
-          ),
-        ],
-      )
+            )
           : _buildConnectionScreen(),
     );
   }
@@ -482,21 +446,14 @@ class _ChatScreenState extends State<ChatScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
 
             children: [
-              Icon(
-                Icons.wifi_tethering_rounded,
-                size: 64,
-                color: primaryColor,
-              ),
+              Icon(Icons.wifi_tethering_rounded, size: 64, color: primaryColor),
 
               const SizedBox(height: 20),
 
               const Text(
                 'Connect to Chat Server',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                ),
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
               ),
 
               const SizedBox(height: 10),
@@ -504,10 +461,7 @@ class _ChatScreenState extends State<ChatScreen> {
               const Text(
                 'Enter your username to connect and start chatting.',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.grey,
-                  fontSize: 14,
-                ),
+                style: TextStyle(color: Colors.grey, fontSize: 14),
               ),
 
               const SizedBox(height: 28),
@@ -536,16 +490,45 @@ class _ChatScreenState extends State<ChatScreen> {
 
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide(
-                      color: Colors.grey.shade200,
-                    ),
+                    borderSide: BorderSide(color: Colors.grey.shade200),
                   ),
 
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide(
-                      color: primaryColor,
-                    ),
+                    borderSide: BorderSide(color: primaryColor),
+                  ),
+                ),
+              ),
+              SizedBox(height: 10),
+              TextField(
+                controller: _usernameController,
+                keyboardType: TextInputType.text,
+                textInputAction: TextInputAction.done,
+
+                onSubmitted: (_) {
+                  if (!_isConnecting) {
+                    connectWebSocket();
+                  }
+                },
+                decoration: InputDecoration(
+                  hintText: 'Enter recipient',
+                  prefixIcon: const Icon(Icons.person_outline),
+                  filled: true,
+                  fillColor: Colors.white,
+
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide.none,
+                  ),
+
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(color: Colors.grey.shade200),
+                  ),
+
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(color: primaryColor),
                   ),
                 ),
               ),
@@ -556,10 +539,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 Text(
                   _connectionError!,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Colors.red,
-                    fontSize: 13,
-                  ),
+                  style: const TextStyle(color: Colors.red, fontSize: 13),
                 ),
               ],
 
@@ -569,9 +549,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 height: 50,
 
                 child: ElevatedButton(
-                  onPressed: _isConnecting
-                      ? null
-                      : connectWebSocket,
+                  onPressed: _isConnecting ? null : connectWebSocket,
 
                   style: ElevatedButton.styleFrom(
                     backgroundColor: primaryColor,
@@ -584,20 +562,20 @@ class _ChatScreenState extends State<ChatScreen> {
 
                   child: _isConnecting
                       ? const SizedBox(
-                    height: 22,
-                    width: 22,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2.5,
-                      color: Colors.white,
-                    ),
-                  )
+                          height: 22,
+                          width: 22,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            color: Colors.white,
+                          ),
+                        )
                       : const Text(
-                    'Connect',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                          'Connect',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                 ),
               ),
             ],

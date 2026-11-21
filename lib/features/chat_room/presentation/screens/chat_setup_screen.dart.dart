@@ -124,7 +124,6 @@ class _ChatSetupScreenState extends State<ChatSetupScreen> {
                   //     color: const Color.fromARGB(255, 200, 100, 100),
                   //   ),
                   // ),
-
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
                     borderSide: BorderSide(color: widget.primaryColor),

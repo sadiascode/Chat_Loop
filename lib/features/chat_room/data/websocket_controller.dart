@@ -163,6 +163,14 @@ class WebSocketController extends ChangeNotifier {
     final messageData = {'to': to, 'text': text};
     try {
       _channel!.sink.add(jsonEncode(messageData));
+
+      // Add message to UI immediately
+      _messages.add({
+        'message': text,
+        'senderId': 'me',
+        'time': DateTime.now().toString().substring(11, 16),
+      });
+      notifyListeners();
     } catch (e) {
       debugPrint('Send Error: $e');
     }

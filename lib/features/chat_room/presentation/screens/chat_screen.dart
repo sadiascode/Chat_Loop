@@ -214,7 +214,16 @@ class _ChatScreenState extends State<ChatScreen> {
           ? AppBar(
               backgroundColor: Colors.white,
               elevation: 0,
-
+              leading: IconButton(
+                onPressed: () {
+                  setState(() {
+                    _hasConnected = false;
+                    _isConnected = false;
+                  });
+                  disconnectWebSocket();
+                },
+                icon: const Icon(Icons.arrow_back_ios, color: Colors.black87),
+              ),
               title: Row(
                 children: [
                   Stack(

@@ -40,10 +40,18 @@ class _ChatScreenState extends State<ChatScreen> {
   // WebSocket Connection
   Future<void> connectWebSocket() async {
     final username = _usernameController.text.trim();
+    final recipient = _recipientController.text.trim();
 
     if (username.isEmpty) {
       setState(() {
         _connectionError = 'Please enter your username.';
+      });
+      return;
+    }
+
+    if (recipient.isEmpty) {
+      setState(() {
+        _connectionError = 'Please enter your recipient name.';
       });
       return;
     }

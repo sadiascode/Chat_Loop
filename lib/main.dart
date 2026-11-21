@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-
-import 'features/chat_room/presentation/screens/chat_screen.dart';
+import 'features/chatlist/presentation/screen/list_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,7 +14,7 @@ class ChatLoop extends StatelessWidget {
     return MaterialApp(
       title: "Loop",
       debugShowCheckedModeBanner: false,
-      home: ChatScreen(),
+      home: ListScreen(),
     );
   }
 }

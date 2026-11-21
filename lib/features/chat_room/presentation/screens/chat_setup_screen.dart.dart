@@ -118,12 +118,12 @@ class _ChatSetupScreenState extends State<ChatSetupScreen> {
                     borderSide: BorderSide.none,
                   ),
 
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide(
-                      color: const Color.fromARGB(255, 200, 100, 100),
-                    ),
-                  ),
+                  // enabledBorder: OutlineInputBorder(
+                  //   borderRadius: BorderRadius.circular(14),
+                  //   borderSide: BorderSide(
+                  //     color: const Color.fromARGB(255, 200, 100, 100),
+                  //   ),
+                  // ),
 
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),

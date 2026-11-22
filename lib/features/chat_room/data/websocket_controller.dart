@@ -196,6 +196,11 @@ class WebSocketController extends ChangeNotifier {
     }
   }
 
+  // Refresh users list
+  void refreshUsers() {
+    notifyListeners();
+  }
+
   // Update connection status
   void _updateConnectionStatus(bool connected) {
     _isConnected = connected;

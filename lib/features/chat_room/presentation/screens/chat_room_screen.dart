@@ -79,7 +79,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                         height: 12,
                         width: 12,
                         decoration: BoxDecoration(
-                          color: widget.controller.isConnected ? Colors.green : Colors.grey,
+                          color: widget.controller.isConnected
+                              ? Colors.green
+                              : Colors.grey,
                           shape: BoxShape.circle,
                           border: Border.all(color: Colors.white, width: 2),
                         ),
@@ -104,7 +106,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                       widget.controller.isConnected ? 'Online' : 'Disconnected',
                       style: TextStyle(
                         fontSize: 12,
-                        color: widget.controller.isConnected ? Colors.green : Colors.grey,
+                        color: widget.controller.isConnected
+                            ? Colors.green
+                            : Colors.grey,
                       ),
                     ),
                   ],
@@ -116,75 +120,89 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
             children: [
               // Messages
               Expanded(
-                child: ListView.builder(
-                  controller: _scrollController,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                  itemCount: widget.controller.getMessagesForUser(widget.selectedUser).length,
-                  itemBuilder: (context, index) {
-                    final message = widget.controller.getMessagesForUser(widget.selectedUser)[index];
+                child: RefreshIndicator(
+                  onRefresh: () async {
+                    widget.controller.refreshUsers();
+                  },
+                  child: ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 20,
+                    ),
+                    itemCount: widget.controller
+                        .getMessagesForUser(widget.selectedUser)
+                        .length,
+                    itemBuilder: (context, index) {
+                      final message = widget.controller.getMessagesForUser(
+                        widget.selectedUser,
+                      )[index];
 
-                    final bool isMe = message['senderId'] == 'me';
+                      final bool isMe = message['senderId'] == 'me';
 
-                    return Align(
-                      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+                      return Align(
+                        alignment: isMe
+                            ? Alignment.centerRight
+                            : Alignment.centerLeft,
 
-                      child: Container(
-                        constraints: BoxConstraints(
-                          maxWidth: MediaQuery.of(context).size.width * 0.75,
-                        ),
-
-                        margin: const EdgeInsets.only(bottom: 16),
-
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-
-                        decoration: BoxDecoration(
-                          color: isMe ? widget.primaryColor : Colors.white,
-
-                          borderRadius: BorderRadius.only(
-                            topLeft: const Radius.circular(18),
-                            topRight: const Radius.circular(18),
-                            bottomLeft: Radius.circular(isMe ? 18 : 4),
-                            bottomRight: Radius.circular(isMe ? 4 : 18),
+                        child: Container(
+                          constraints: BoxConstraints(
+                            maxWidth: MediaQuery.of(context).size.width * 0.75,
                           ),
 
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.03),
-                              blurRadius: 8,
-                              offset: const Offset(0, 3),
-                            ),
-                          ],
-                        ),
+                          margin: const EdgeInsets.only(bottom: 16),
 
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              message['message'].toString(),
-                              style: TextStyle(
-                                fontSize: 14,
-                                height: 1.5,
-                                color: isMe ? Colors.white : Colors.black87,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+
+                          decoration: BoxDecoration(
+                            color: isMe ? widget.primaryColor : Colors.white,
+
+                            borderRadius: BorderRadius.only(
+                              topLeft: const Radius.circular(18),
+                              topRight: const Radius.circular(18),
+                              bottomLeft: Radius.circular(isMe ? 18 : 4),
+                              bottomRight: Radius.circular(isMe ? 4 : 18),
+                            ),
+
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.03),
+                                blurRadius: 8,
+                                offset: const Offset(0, 3),
                               ),
-                            ),
+                            ],
+                          ),
 
-                            const SizedBox(height: 5),
-
-                            Text(
-                              message['time'].toString(),
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: isMe ? Colors.white70 : Colors.grey,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                message['message'].toString(),
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  height: 1.5,
+                                  color: isMe ? Colors.white : Colors.black87,
+                                ),
                               ),
-                            ),
-                          ],
+
+                              const SizedBox(height: 5),
+
+                              Text(
+                                message['time'].toString(),
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: isMe ? Colors.white70 : Colors.grey,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
               ),
 

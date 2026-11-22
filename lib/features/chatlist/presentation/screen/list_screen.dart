@@ -43,6 +43,41 @@ class _ListScreenState extends State<ListScreen> {
                 fontWeight: FontWeight.bold,
               ),
             ),
+            actions: [
+              IconButton(
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Logout'),
+                      content: const Text('Are you sure you want to logout?'),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: const Text('Cancel'),
+                        ),
+                        TextButton(
+                          onPressed: () async {
+                            await widget.controller.disconnect();
+                            if (context.mounted) {
+                              Navigator.of(context).pop();
+                              Navigator.pushReplacementNamed(context, '/');
+                            }
+                          },
+                          child: const Text(
+                            'Logout',
+                            style: TextStyle(color: Colors.red),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.logout, color: Colors.black87),
+              ),
+            ],
           ),
           body: RefreshIndicator(
             onRefresh: () async {

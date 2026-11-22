@@ -119,9 +119,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                 child: ListView.builder(
                   controller: _scrollController,
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                  itemCount: widget.controller.messages.length,
+                  itemCount: widget.controller.getMessagesForUser(widget.selectedUser).length,
                   itemBuilder: (context, index) {
-                    final message = widget.controller.messages[index];
+                    final message = widget.controller.getMessagesForUser(widget.selectedUser)[index];
 
                     final bool isMe = message['senderId'] == 'me';
 

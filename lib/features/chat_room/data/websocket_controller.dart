@@ -20,7 +20,7 @@ class WebSocketController extends ChangeNotifier {
     {'name': 'alex', 'status': 'offline'},
     {'name': 'taylor', 'status': 'offline'},
   ];
-  final List<Map<String, dynamic>> _messages = [];
+  final Map<String, List<Map<String, dynamic>>> _messagesByUser = {};
 
   // Getters
   bool get isConnected => _isConnected;
@@ -28,7 +28,8 @@ class WebSocketController extends ChangeNotifier {
   String? get myUsername => _myUsername;
   String? get connectionError => _connectionError;
   List<Map<String, dynamic>> get users => List.unmodifiable(_users);
-  List<Map<String, dynamic>> get messages => List.unmodifiable(_messages);
+  List<Map<String, dynamic>> getMessagesForUser(String username) =>
+      List.unmodifiable(_messagesByUser[username] ?? []);
 
   // Connect to WebSocket
   Future<void> connect(String username) async {
@@ -127,11 +128,27 @@ class WebSocketController extends ChangeNotifier {
 
           debugPrint('$sender → $to: $messageText');
 
-          _messages.add({
+          // Store message for both sender and recipient
+          final messageData = {
             'message': messageText,
             'senderId': isFromMe ? 'me' : sender,
             'time': DateTime.now().toString().substring(11, 16),
-          });
+          };
+
+          // Add to recipient's message list
+          if (!_messagesByUser.containsKey(to)) {
+            _messagesByUser[to] = [];
+          }
+          _messagesByUser[to]!.add(messageData);
+
+          // Add to sender's message list (if not me)
+          if (!isFromMe && !_messagesByUser.containsKey(sender)) {
+            _messagesByUser[sender] = [];
+          }
+          if (!isFromMe) {
+            _messagesByUser[sender]!.add(messageData);
+          }
+
           notifyListeners();
           break;
 
@@ -164,8 +181,11 @@ class WebSocketController extends ChangeNotifier {
     try {
       _channel!.sink.add(jsonEncode(messageData));
 
-      // Add message to UI immediately
-      _messages.add({
+      // Add message to UI immediately for the specific user
+      if (!_messagesByUser.containsKey(to)) {
+        _messagesByUser[to] = [];
+      }
+      _messagesByUser[to]!.add({
         'message': text,
         'senderId': 'me',
         'time': DateTime.now().toString().substring(11, 16),
@@ -195,7 +215,7 @@ class WebSocketController extends ChangeNotifier {
     _myUsername = null;
     _connectionError = null;
     _users.clear();
-    _messages.clear();
+    _messagesByUser.clear();
     notifyListeners();
   }
 

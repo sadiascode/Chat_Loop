@@ -31,6 +31,15 @@ class WebSocketController extends ChangeNotifier {
   List<Map<String, dynamic>> getMessagesForUser(String username) =>
       List.unmodifiable(_messagesByUser[username] ?? []);
 
+  // Get user status
+  bool getUserStatus(String username) {
+    final user = _users.firstWhere(
+      (u) => u['name'].toString().toLowerCase() == username.toLowerCase(),
+      orElse: () => {'status': 'offline'},
+    );
+    return user['status'].toString().toLowerCase() == 'online';
+  }
+
   // Connect to WebSocket
   Future<void> connect(String username) async {
     if (_isConnected || _isConnecting) return;

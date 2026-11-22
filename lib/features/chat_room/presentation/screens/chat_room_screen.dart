@@ -79,7 +79,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                         height: 12,
                         width: 12,
                         decoration: BoxDecoration(
-                          color: widget.controller.isConnected
+                          color: widget.controller.getUserStatus(widget.selectedUser)
                               ? Colors.green
                               : Colors.grey,
                           shape: BoxShape.circle,
@@ -103,10 +103,10 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      widget.controller.isConnected ? 'Online' : 'Disconnected',
+                      widget.controller.getUserStatus(widget.selectedUser) ? 'Online' : 'Offline',
                       style: TextStyle(
                         fontSize: 12,
-                        color: widget.controller.isConnected
+                        color: widget.controller.getUserStatus(widget.selectedUser)
                             ? Colors.green
                             : Colors.grey,
                       ),

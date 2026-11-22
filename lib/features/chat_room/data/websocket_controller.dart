@@ -228,7 +228,8 @@ class WebSocketController extends ChangeNotifier {
     _isConnecting = false;
     _myUsername = null;
     _connectionError = null;
-    _users.clear();
+    // Don't clear users list, keep it for next login
+    // _users.clear();
     _messagesByUser.clear();
     notifyListeners();
   }
